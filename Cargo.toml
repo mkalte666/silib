@@ -13,3 +13,4 @@ serde = {optional = true, version = "1.0", default-features = false, features = 
 
 [dev-dependencies]
 serde_json = "1.0"
+trybuild = "1.0"
