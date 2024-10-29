@@ -96,7 +96,7 @@ make_units!(
 );
 
 additional_unit!(ThermodynamicTemperature, Celsius, 1.0, 273.15);
-additional_unit!(ThermodynamicTemperature, Fahrenheit, 0.55555555555, 459.67);
+additional_unit!(ThermodynamicTemperature, Fahrenheit, 5.0 / 9.0, 459.67);
 
 make_quantity!(
     name: Angle,
