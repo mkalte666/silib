@@ -1,7 +1,7 @@
 use crate::{
     additional_unit,
     derive_quantities,
-    dimension::si::{
+    dimension::{
         AmountDim,
         CurrentDim,
         IntensityDim,
@@ -11,15 +11,12 @@ use crate::{
         TemperatureDim,
         TimeDim,
     },
+    kind::AngleKind,
     make_base_quantities,
+    make_kind,
     make_quantity,
     make_units,
-    quantity::{
-        Quantity,
-        QuantityTypeInfo,
-    },
-    unit::QuantityConversion,
-    value_type::ValueType,
+    quantity::Quantity,
 };
 
 make_units!(
@@ -45,7 +42,15 @@ make_quantity!(
     name: ThermodynamicTemperature,
     dimension: TemperatureDim,
     base_unit: Kelvin,
-    make_kind: ThermodynamicTemperatureKind,
+    use_kind: ThermodynamicTemperatureKind,
+);
+
+make_kind!(
+    name: ThermodynamicTemperatureKind,
+    rules: [
+        (ThermodynamicTemperatureKind + () -> ThermodynamicTemperatureKind),
+        (ThermodynamicTemperatureKind - -> ()),
+    ]
 );
 
 make_quantity!(
@@ -56,15 +61,25 @@ make_quantity!(
 pub type Unitless<T> = Quantity<T, NoDim, ()>;
 
 make_units!(
+    Hertz: "Hz", "Unit of frequency";
+    Radian: "rad", "Unit of angle";
+    RadianPerSecond: "rad*s⁻¹", "Unit of angular velocity";
+    RevolutionsPerSecond: "rps", "A unit of angular velocity";
+    RevolutionsPerMinute: "rpm", "A unit of angular velocity";
+    RadianPerSecondSquared: "rad*s⁻²", "Unit of angular acceleration";
     SquareMetre: "m²", "Unit of area";
     CubicMetre: "m³", "Unit of volume";
-    MetresPerSecond: "m/s", "Unit of velocity";
-    KilometresPerSecond: "km/s", "";
-    KilometresPerHour: "km/h", "";
-    MilesPerSecond: "miles/s", "";
-    MilesPerHour: "miles/h","";
-    MetresPerSecondSquared: "m/s²","Unit of acceleration";
+    MetresPerSecond: "m*s⁻¹", "Unit of velocity";
+    KilometresPerSecond: "km*s⁻¹", "A unit of velocity";
+    KilometresPerHour: "km*h⁻¹", "A unit of velocity";
+    MilesPerSecond: "miles*s⁻¹", "A unit of velocity";
+    MilesPerHour: "miles*h⁻¹","A unit of velocity";
+    MetresPerSecondSquared: "m*s⁻²","Unit of acceleration";
+    MetresPerSecondCubed: "m*s⁻³","Unit of jerk";
     Newton: "N", "Unit of force";
+    NewtonSecond: "N*s", "Unit of momentum/impulse";
+    NewtonMetreSecond: "N*m*s", "Unit of angular momentum";
+    NewtonMetre: "N*m", "Unit of torque";
     Pascal: "Pa", "Unit of pressure and stress";
     Joule: "J", "Unit of energy";
     Watt: "W", "Unit of power";
@@ -83,16 +98,25 @@ make_units!(
 additional_unit!(ThermodynamicTemperature, Celsius, 1.0, 273.15);
 additional_unit!(ThermodynamicTemperature, Fahrenheit, 0.55555555555, 459.67);
 
+make_quantity!(
+    name: Angle,
+    dimension: NoDim,
+    base_unit: Radian,
+    use_kind: AngleKind
+);
+
 derive_quantities!(
+    Frequency: (Unitless / Time), Hertz;
     Area: (Length * Length), SquareMetre;
     Volume: (Length * Length * Length), CubicMetre;
     Velocity: (Length/ Time), MetresPerSecond, [
-        KilometresPerSecond: 1000.0,
-        KilometresPerHour: 0.27777777777,
-        MilesPerSecond: 1609.34,
-        MilesPerHour: 0.44703888888,
+        KilometresPerSecond: 1000.0;
+        KilometresPerHour: 1000.0/(60.0*60.0);
+        MilesPerSecond: 1609.34;
+        MilesPerHour: 1609.34/(60.0*60.0);
     ];
     Acceleration: (Length / Time / Time), MetresPerSecondSquared;
+    Jerk: (Acceleration / Time), MetresPerSecondCubed;
     Force: (Mass * Acceleration), Newton;
     Pressure: (Force / Area), Pascal;
     Energy: (Force * Length), Joule;
@@ -105,6 +129,14 @@ derive_quantities!(
     MagneticFlux: (Energy / ElectricCurrent), Weber;
     MagneticInduction: (MagneticFlux / Area), Tesla;
     ElectricInducance: (ElectricResistance * Time), Henry;
+    AngluarVelocity: (Angle/Time), RadianPerSecond, [
+        Hertz: core::f64::consts::TAU;
+        RevolutionsPerSecond: core::f64::consts::TAU;
+        RevolutionsPerMinute: core::f64::consts::TAU/60.0;
+    ];
+    AngluarAcceleration: (AngluarVelocity/Time), RadianPerSecondSquared;
+    Torque: (Energy/Angle), NewtonMetre;
+    AngularMomentum: (Torque * Time), NewtonMetreSecond;
 );
 
 #[cfg(test)]
@@ -113,17 +145,34 @@ mod test {
 
     #[test]
     fn check_kind_conversion() {
-        //let f = Frequency::new_base(1.0);
-        //let f2 = Frequency::new::<Hertz>(2.0*std::f32::consts::PI);
-        //let v = AngularVelocity::new::<RadianPerSecond>(2.0*std::f32::consts::PI);
+        let angle = Angle::new_base(std::f64::consts::PI);
+        let angle2 = Angle::new_base(std::f64::consts::PI);
+        let a = Unitless::new_base(1.0);
+        assert_eq!(angle + angle2, Angle::new_base(std::f64::consts::PI * 2.0));
+        //assert_eq!(a,angle); does not compile
+        assert_eq!(a * angle2, angle2); // that is fine.
+    }
 
-        // this does not compile:
-        // let urgh : Frequency<_> = v;
+    #[test]
+    fn check_temp() {
+        let t1 = ThermodynamicTemperature::new::<Celsius>(20.0);
+        assert_eq!(t1.get::<Kelvin>(), 293.15);
 
-        // this makes not much sense, but is supported:
-        //assert_eq!(f2,v.unrestricted());
-        // more sense:
-        //assert_eq!(f.get::<Hertz>(),v.get::<Hertz>());
+        // Intervals are in kelvin!
+        //let t2 = TemperatureInterval::new::<Celsius>(10.0);
+        let t2 = TemperatureInterval::new::<Kelvin>(10.0);
+        let t3 = TemperatureInterval::new::<Kelvin>(5.0);
+        // you can add intervals
+        let t4 = t2 + t3;
+        // you can add intervals to temps.
+        let t5 = t1 + t4;
+        let t6 = t4 + t1;
+        assert_eq!(t5, t6);
+        // you cannot add thermodynamic temperatures!
+        //let t7 = t1 + t1;
+        // you *can* substract them. It yields intervals!
+        let t8: TemperatureInterval<_> = t1 - t1;
+        assert_eq!(t8.get::<Kelvin>(), 0.0);
     }
 
     #[test]

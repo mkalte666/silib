@@ -9,27 +9,38 @@ use std::{
     },
 };
 
-use num::Float;
+use num::{
+    complex::ComplexFloat,
+    traits::real::Real,
+    Complex,
+    Float,
+};
 
 use crate::{
     dimension::{
-        si::NoDim,
         DimInverse,
         DimNthRoot,
         DimPow,
         Dimension,
+        NoDim,
     },
     kind::{
         AngleKind,
+        KindAdd,
         KindDiv,
         KindMul,
+        KindSub,
     },
     unit::{
         QuantityConversion,
         Unit,
         UnitFormatter,
     },
-    value_type::ValueType,
+    value_type::{
+        ComplexValueType,
+        RealValueType,
+        ValueType,
+    },
 };
 
 /// A helper trait to quickly be able to access the usually templated types of Quantities.
@@ -74,7 +85,7 @@ where
 {
     /// Create a new Quantity in its base representation
     /// Take care that Kind may influence what that actually means
-    pub fn new_base(value: DataType) -> Self {
+    pub const fn new_base(value: DataType) -> Self {
         Self {
             _dim: PhantomData,
             _kind: PhantomData,
@@ -128,34 +139,38 @@ where
     }
 }
 
-/// Addition on quantities is only defined if they are equal in all aspects
-impl<DataType, Dim, K> Add for Quantity<DataType, Dim, K>
+/// Addition on quantities is only defined if they are equal in all aspects - or addition is allowed for kinds
+impl<DataType, Dim, K1, K2> Add<Quantity<DataType, Dim, K2>> for Quantity<DataType, Dim, K1>
 where
     DataType: ValueType,
     Dim: Dimension,
+    K1: KindAdd<K2>,
 {
-    type Output = Self;
+    type Output = Quantity<DataType, Dim, <K1 as KindAdd<K2>>::Output>;
 
-    fn add(self, rhs: Self) -> Self::Output {
-        Self {
+    fn add(self, rhs: Quantity<DataType, Dim, K2>) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
             value: self.value + rhs.value,
-            ..self
         }
     }
 }
 
-/// Subtraction on quantities is only defined if they are equal in all aspects
-impl<DataType, Dim, K> Sub for Quantity<DataType, Dim, K>
+/// Subtraction on quantities is only defined if they are equal in all aspects - or addition is allowed for kinds
+impl<DataType, Dim, K1, K2> Sub<Quantity<DataType, Dim, K2>> for Quantity<DataType, Dim, K1>
 where
     DataType: ValueType,
     Dim: Dimension,
+    K1: KindSub<K2>,
 {
-    type Output = Self;
+    type Output = Quantity<DataType, Dim, <K1 as KindSub<K2>>::Output>;
 
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self {
+    fn sub(self, rhs: Quantity<DataType, Dim, K2>) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
             value: self.value - rhs.value,
-            ..self
         }
     }
 }
@@ -259,7 +274,7 @@ macro_rules! one_param_methods {
 
 impl<T, D, K> Quantity<T, D, K>
 where
-    T: ValueType + Float,
+    T: ValueType + RealValueType + Float,
     D: Dimension,
 {
     producer_methods!(
@@ -322,8 +337,9 @@ where
     T: ValueType + Float,
     D: Dimension + DimInverse,
     <D as DimInverse>::Output: Dimension,
+    (): KindDiv<K>,
 {
-    pub fn recip(self) -> Quantity<T, <D as DimInverse>::Output, ()> {
+    pub fn recip(self) -> Quantity<T, <D as DimInverse>::Output, <() as KindDiv<K>>::Output> {
         Quantity {
             _dim: Default::default(),
             _kind: Default::default(),
@@ -393,7 +409,7 @@ where
 
 impl<T, D, K> Quantity<T, D, K>
 where
-    T: ValueType + Float,
+    T: RealValueType + ValueType + Float,
     D: Dimension + DimNthRoot<typenum::P3>,
     <D as DimNthRoot<typenum::P3>>::Output: Dimension,
 {
@@ -408,7 +424,7 @@ where
 
 impl<T, K> Quantity<T, NoDim, K>
 where
-    T: ValueType + Float,
+    T: RealValueType + ValueType + Float,
 {
     no_param_methods!(
         acos -> Quantity<T,NoDim,AngleKind>;
@@ -438,4 +454,85 @@ where
             value: self.value.log(value),
         }
     }
+}
+
+impl<T, K> Quantity<Complex<T>, NoDim, K>
+where
+    T: ValueType + RealValueType + Float,
+    Complex<T>: ValueType + ComplexValueType + ComplexFloat,
+{
+    no_param_methods!(
+        acos -> Quantity<Complex<T>,NoDim,AngleKind>;
+        acosh -> Quantity<Complex<T>,NoDim,AngleKind>;
+        asin -> Quantity<Complex<T>,NoDim,AngleKind>;
+        asinh -> Quantity<Complex<T>,NoDim,AngleKind>;
+        atan -> Quantity<Complex<T>,NoDim,AngleKind>;
+        atanh -> Quantity<Complex<T>,NoDim,AngleKind>;
+        exp -> Quantity<Complex<T>,NoDim,()>;
+        exp2 -> Quantity<Complex<T>,NoDim,()>;
+
+    );
+}
+
+impl<T, Dim, K> Quantity<Complex<T>, Dim, K>
+where
+    T: ValueType + RealValueType + Real,
+    Complex<T>: ValueType + ComplexValueType + ComplexFloat,
+    Dim: Dimension,
+    <Complex<T> as ComplexFloat>::Real: ValueType,
+{
+    no_param_methods!(
+        arg -> Quantity<<Complex<T> as ComplexFloat>::Real,NoDim,AngleKind>;
+        im -> Quantity<<Complex<T> as ComplexFloat>::Real,Dim,K>;
+        re -> Quantity<<Complex<T> as ComplexFloat>::Real,Dim,K>;
+    );
+}
+
+impl<T, Dim, K> Quantity<Complex<T>, Dim, K>
+where
+    T: ValueType + RealValueType + Float,
+    Complex<T>: ValueType + ComplexValueType + ComplexFloat,
+    Dim: Dimension,
+    <Complex<T> as ComplexFloat>::Real: ValueType,
+{
+    no_param_methods!(
+        norm -> Quantity<T,NoDim,AngleKind>;
+    );
+}
+
+impl<T, Dim, K> Quantity<Complex<T>, Dim, K>
+where
+    T: ValueType + RealValueType + Float,
+    Complex<T>: ValueType + ComplexValueType + ComplexFloat,
+    Dim: Dimension,
+{
+    pub fn is_finite(&self) -> bool {
+        self.value.is_finite()
+    }
+
+    pub fn is_infinite(&self) -> bool {
+        self.value.is_infinite()
+    }
+
+    pub fn is_nan(&self) -> bool {
+        self.value.is_nan()
+    }
+
+    pub fn is_normal(&self) -> bool {
+        self.value.is_normal()
+    }
+}
+
+impl<T, Dim, K> Quantity<Complex<T>, Dim, K>
+where
+    T: ValueType + RealValueType + Float,
+    Complex<T>: ValueType + ComplexValueType + ComplexFloat,
+    Dim: Dimension + DimInverse,
+    <Dim as DimInverse>::Output: Dimension,
+    (): KindDiv<K>,
+{
+    no_param_methods!(
+        finv -> Quantity<Complex<T>,<Dim as DimInverse>::Output,<() as KindDiv<K>>::Output>;
+        inv -> Quantity<Complex<T>,<Dim as DimInverse>::Output,<() as KindDiv<K>>::Output>;
+    );
 }

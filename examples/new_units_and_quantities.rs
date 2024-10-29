@@ -15,7 +15,7 @@ make_units!(
 
 derive_quantities!(
     Length2Time2PerMass: (Length * Length * Time * Time / Mass), Meter2Second2PerKilo, [
-        FuzzyWaffles: 42.0,
+        FuzzyWaffles: 42.0;
     ];
 );
 

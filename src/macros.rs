@@ -104,7 +104,7 @@ macro_rules! type_math {
 
 #[macro_export]
 macro_rules! additional_unit {
-    ($name:ident, $unit:ident, $factor:literal $(,$offset:literal)*) => {
+    ($name:ident, $unit:ident, $factor:expr $(,$offset:expr)*) => {
         impl<T>
             $crate::unit::QuantityConversion<
                 T,
@@ -133,7 +133,7 @@ macro_rules! derive_quantity {
         quantity_type: ($($ty:tt)*),
         unit: $unit:ident,
         $(additional_units: [
-            $($extra_unit_name:ident: $extra_unit_factor:literal, $($extra_unit_offset:literal,)*)*
+            $($extra_unit_name:ident: $extra_unit_factor:expr $(, $extra_unit_offset:expr)*;)*
         ]$(,)*)*
     ) => {
         pub type $name<T> = $crate::type_math!($($ty)*);
@@ -146,14 +146,14 @@ macro_rules! derive_quantity {
             }
         }
         $($(
-            $crate::additional_unit!($name, $extra_unit_name, $extra_unit_factor $(,$extra_unit_offset,)*);
+            $crate::additional_unit!($name, $extra_unit_name, $extra_unit_factor $(,$extra_unit_offset)*);
         )*)*
     };
 }
 
 #[macro_export]
 macro_rules! derive_quantities {
-    ($($name:ident: ($($ty:tt)*), $unit:ident $(,[$($extra_unit_name:ident: $extra_unit_factor:literal, $($extra_unit_offset:literal)*)*])*;)*) => {
+    ($($name:ident: ($($ty:tt)*), $unit:ident $(,[$($extra_unit_name:ident: $extra_unit_factor:expr $(,$extra_unit_offset:expr)*;)*])*;)*) => {
         $(
             $crate::derive_quantity!(
                 name: $name,
@@ -161,10 +161,74 @@ macro_rules! derive_quantities {
                 unit: $unit,
                 $(
                 additional_units: [$(
-                  $extra_unit_name: $extra_unit_factor, $($extra_unit_offset,)*
+                  $extra_unit_name: $extra_unit_factor $(, $extra_unit_offset)*;
                 )*]
                 )*
             );
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! add_kind_rule {
+    ($lhs:ident + $rhs:tt -> $result:tt ) => {
+        impl $crate::kind::KindAdd<$rhs> for $lhs {
+            type Output = $result;
+        }
+        impl $crate::kind::KindAdd<$lhs> for $rhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident + -> $result:tt ) => {
+        impl $crate::kind::KindAdd<$lhs> for $lhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident - $rhs:tt -> $result:tt ) => {
+        impl $crate::kind::KindSub<$rhs> for $lhs {
+            type Output = $result;
+        }
+        impl $crate::kind::KindSub<$lhs> for $rhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident - -> $result:tt ) => {
+        impl $crate::kind::KindSub<$lhs> for $lhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident * $rhs:tt -> $result:tt ) => {
+        impl $crate::kind::KindMul<$rhs> for $lhs {
+            type Output = $result;
+        }
+        impl $crate::kind::KindMul<$lhs> for $rhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident * -> $result:tt ) => {
+        impl $crate::kind::KindMul<$lhs> for $lhs {
+            type Output = $result;
+        }
+    };
+    ($lhs:ident / $rhs:tt-> $result:tt ) => {
+        impl $crate::kind::KindDiv<$rhs> for $lhs {
+            type Output = $result;
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! make_kind {
+    (
+        name: $name:ident,
+        rules: [$(($($op:tt)*),)*]
+    ) => {
+        #[derive(Debug, Copy, Clone, PartialEq)]
+        pub struct $name {}
+        impl $crate::kind::Kind for $name {}
+
+        $(
+            $crate::add_kind_rule!($($op)*);
         )*
     };
 }
