@@ -1,0 +1,15 @@
+[package]
+name = "silib"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+typenum = "1.17"
+static_assertions = "1.1"
+num = "0.4"
+paste = "1.0"
+
+serde = {optional = true, version = "1.0", default-features = false, features = ["derive"]}
+
+[dev-dependencies]
+serde_json = "1.0"
