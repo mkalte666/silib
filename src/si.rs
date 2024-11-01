@@ -93,6 +93,16 @@ make_units!(
     Henry: "H", "Unit of electrical inductance";
     Celsius: "°C", "A unit of absolute temperature";
     Fahrenheit: "°F", "A unit of absolute temperature";
+    KilogramPerSquareMetre: "kg*m⁻²", "Unit of specific volume";
+    KilogramPerCubicMetre: "kg*m⁻³", "Unit of density";
+    CubicMetrePerKilogram: "m³*kg⁻¹", "Unit of specific volume";
+    JouleSecond: "J*s", "Unit of action";
+    JoulePerKilogram: "J*kg⁻¹", "Unit of specific energy";
+    JoulePerCubicMetre: "J*m⁻²", "Unit of energy tensity";
+    NewtonPerMetre: "N*m⁻¹", "Unit of surface tension and Stiffness";
+    WattPerSquareMetre: "W*m⁻²", "Unit of heat flox density";
+    SquareMetrePerSecond: "m²*s⁻¹", "Unit of kinematic viscosity";
+    PascalSecond: "Pa*s", "Unit of dynamic viscosity";
 );
 
 additional_unit!(ThermodynamicTemperature, Celsius, 1.0, 273.15);
@@ -137,6 +147,16 @@ derive_quantities!(
     AngluarAcceleration: (AngluarVelocity/Time), RadianPerSecondSquared;
     Torque: (Energy/Angle), NewtonMetre;
     AngularMomentum: (Torque * Time), NewtonMetreSecond;
+    AreaDensity: (Mass/Area), KilogramPerSquareMetre;
+    Density: (Mass/Volume), KilogramPerCubicMetre;
+    SpecificVolume: (Volume/Mass), CubicMetrePerKilogram;
+    Action: (Energy * Time), JouleSecond;
+    SpecificEnergy: (Energy / Mass), JoulePerKilogram;
+    EnergyDensity: (Energy / Volume), JoulePerCubicMetre;
+    SurfaceTension: (Force / Length), NewtonPerMetre;
+    HeatFluxDensity: (Power/Area), WattPerSquareMetre;
+    KinematicViscosity: (Area/Time), SquareMetrePerSecond;
+    DynamicViscosity: (Pressure * Time), PascalSecond;
 );
 
 #[cfg(test)]
