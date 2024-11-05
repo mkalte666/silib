@@ -1,3 +1,5 @@
+use num::Complex;
+
 use crate::{
     additional_unit,
     derive_quantities,
@@ -59,11 +61,15 @@ make_quantity!(
     base_unit: Kelvin,
 );
 pub type Unitless<T> = Quantity<T, NoDim, ()>;
+pub type Unitless32 = Unitless<f32>;
+pub type Unitless64 = Unitless<f64>;
+pub type UnitlessC32 = Unitless<Complex<f32>>;
+pub type UnitlessC64 = Unitless<Complex<f64>>;
 
 make_units!(
     Hertz: "Hz", "Unit of frequency";
     Radian: "rad", "Unit of angle";
-    RadianPerSecond: "rad*s⁻¹", "Unit of angular velocity";
+    RadianPerSecond: "rad*s⁻¹", "Unit of angular velocity and a unit of angular frequency";
     RevolutionsPerSecond: "rps", "A unit of angular velocity";
     RevolutionsPerMinute: "rpm", "A unit of angular velocity";
     RadianPerSecondSquared: "rad*s⁻²", "Unit of angular acceleration";
@@ -116,7 +122,9 @@ make_quantity!(
 );
 
 derive_quantities!(
-    Frequency: (Unitless / Time), Hertz;
+    Frequency: (Unitless / Time), Hertz, [
+        RadianPerSecond: std::f64::consts::TAU;
+    ];
     Area: (Length * Length), SquareMetre;
     Volume: (Length * Length * Length), CubicMetre;
     Velocity: (Length/ Time), MetresPerSecond, [

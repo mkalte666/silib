@@ -5,13 +5,17 @@ use std::{
         Add,
         Div,
         Mul,
+        Neg,
         Sub,
     },
 };
 
 use num::{
     complex::ComplexFloat,
-    traits::real::Real,
+    traits::{
+        real::Real,
+        Inv,
+    },
     Complex,
     Float,
 };
@@ -176,6 +180,22 @@ where
             _dim: Default::default(),
             _kind: Default::default(),
             value: self.value - rhs.value,
+        }
+    }
+}
+
+impl<T, Dim, K> Neg for Quantity<T, Dim, K>
+where
+    T: ValueType + Neg<Output = T>,
+    Dim: Dimension,
+{
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value.neg(),
         }
     }
 }
@@ -491,6 +511,18 @@ where
     );
 }
 
+impl<T, Dim, K> Quantity<T, Dim, K>
+where
+    T: ValueType + RealValueType + Float + Inv<Output = T>,
+    Dim: Dimension + DimInverse,
+    <Dim as DimInverse>::Output: Dimension,
+    (): KindDiv<K>,
+{
+    no_param_methods!(
+        inv -> Quantity<T,<Dim as DimInverse>::Output,<() as KindDiv<K>>::Output>;
+    );
+}
+
 impl<T, Dim, K> Quantity<Complex<T>, Dim, K>
 where
     T: ValueType + RealValueType + Real,
@@ -541,7 +573,7 @@ where
     <Complex<T> as ComplexFloat>::Real: ValueType,
 {
     no_param_methods!(
-        norm -> Quantity<T,NoDim,AngleKind>;
+        norm -> Quantity<T,Dim,K>;
     );
 }
 
@@ -580,4 +612,42 @@ where
         finv -> Quantity<Complex<T>,<Dim as DimInverse>::Output,<() as KindDiv<K>>::Output>;
         inv -> Quantity<Complex<T>,<Dim as DimInverse>::Output,<() as KindDiv<K>>::Output>;
     );
+}
+
+// Finally, as a helping, mul, div by, and dividing the base type should also be implemented
+
+impl<T1, T2, Dim, K> Mul<T2> for Quantity<T1, Dim, K>
+where
+    T1: ValueType + Mul<T2>,
+    T2: ValueType,
+    <T1 as Mul<T2>>::Output: ValueType,
+    Dim: Dimension,
+{
+    type Output = Quantity<<T1 as Mul<T2>>::Output, Dim, K>;
+
+    fn mul(self, rhs: T2) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value * rhs,
+        }
+    }
+}
+
+impl<T1, T2, Dim, K> Div<T2> for Quantity<T1, Dim, K>
+where
+    T1: ValueType + Div<T2>,
+    T2: ValueType,
+    <T1 as Div<T2>>::Output: ValueType,
+    Dim: Dimension,
+{
+    type Output = Quantity<<T1 as Div<T2>>::Output, Dim, K>;
+
+    fn div(self, rhs: T2) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value / rhs,
+        }
+    }
 }
