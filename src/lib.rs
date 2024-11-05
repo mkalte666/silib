@@ -32,10 +32,8 @@ mod static_checks {
 
 #[cfg(test)]
 mod tests {
-    use crate::si::{
-        Length,
-        Metre,
-    };
+    use num::complex::c32;
+    use crate::si::{Length, LengthC32, Metre};
     #[test]
     fn sqrt_cbrt() {
         let m2 = Length::new_base(4.0) * Length::new_base(4.0);
@@ -56,5 +54,21 @@ mod tests {
         let l2: Length<f64> = serde_json::from_str(&json).expect("from json failed");
         assert_eq!(l, l2);
         assert_eq!("123.432", json);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_serde_basetype() {
+        let l = Length::new::<Metre>(123.432);
+        let json = serde_json::to_string(&l).expect("To json failed");
+        let l2 = 123.432;
+        let json2 = serde_json::to_string(&l2).expect("To json failed");
+        assert_eq!(json,json2);
+
+        let lc = LengthC32::new::<Metre>(c32(1.0,5.0));
+        let lc_val = c32(1.0,5.0);
+        let json = serde_json::to_string(&lc).expect("To json failed");
+        let json2 = serde_json::to_string(&lc_val).expect("To json failed");
+        assert_eq!(json,json2);
     }
 }

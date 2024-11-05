@@ -11,6 +11,9 @@ paste = "1.0"
 
 serde = {optional = true, version = "1.0", default-features = false, features = ["derive"]}
 
+[features]
+serde = ["dep:serde", "num/serde"]
+
 [dev-dependencies]
 serde_json = "1.0"
 trybuild = "1.0"
