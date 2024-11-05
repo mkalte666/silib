@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     fmt::Display,
     marker::PhantomData,
     ops::{
@@ -69,7 +70,7 @@ pub trait QuantityTypeInfo {
 ///
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Quantity<DataType, Dim, K>
 where
     DataType: ValueType,
@@ -128,6 +129,13 @@ where
     {
         Unit::convert_from_base(self.value)
     }
+
+    /// Access this quantities base value.
+    ///
+    /// Note that you lose the dimensional analysis safety here, but this is very much a valid operation for all kinds of things
+    pub fn base_value(&self) -> DataType {
+        self.value
+    }
 }
 
 impl<DataType, Dim, K> Quantity<DataType, Dim, K>
@@ -141,6 +149,57 @@ where
         UnitType: Unit + QuantityConversion<DataType, Dim, K>,
     {
         UnitFormatter::new(self.get::<UnitType>())
+    }
+}
+
+impl<DataType, Dim, K> PartialEq for Quantity<DataType, Dim, K>
+where
+    DataType: ValueType + PartialEq,
+    Dim: Dimension,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.value.eq(&other.value)
+    }
+}
+
+impl<DataType, Dim, K> Eq for Quantity<DataType, Dim, K>
+where
+    DataType: ValueType + Eq,
+    Dim: Dimension,
+{
+}
+
+impl<DataType, Dim, K> PartialOrd for Quantity<DataType, Dim, K>
+where
+    DataType: ValueType + PartialOrd,
+    Dim: Dimension,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.value.partial_cmp(&other.value)
+    }
+}
+
+impl<DataType, Dim, K> Ord for Quantity<DataType, Dim, K>
+where
+    DataType: ValueType + Ord + PartialOrd,
+    Dim: Dimension,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.value.cmp(&other.value)
+    }
+}
+
+impl<DataType, Dim, K> Default for Quantity<DataType, Dim, K>
+where
+    DataType: ValueType + Default,
+    Dim: Dimension,
+{
+    fn default() -> Self {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: DataType::default(),
+        }
     }
 }
 
@@ -431,7 +490,7 @@ where
 
 impl<T, D, K> Quantity<T, D, K>
 where
-    T: ValueType + Float,
+    T: ValueType + Float + RealValueType,
     D: Dimension + DimNthRoot<typenum::P2>,
     <D as DimNthRoot<typenum::P2>>::Output: Dimension,
 {
@@ -614,6 +673,38 @@ where
     );
 }
 
+impl<T, D, K> Quantity<Complex<T>, D, K>
+where
+    T: ValueType + Float + RealValueType,
+    Complex<T>: ValueType + ComplexValueType,
+    D: Dimension + DimNthRoot<typenum::P2>,
+    <D as DimNthRoot<typenum::P2>>::Output: Dimension,
+{
+    pub fn sqrt(self) -> Quantity<Complex<T>, D::Output, ()> {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value.sqrt(),
+        }
+    }
+}
+
+impl<T, D, K> Quantity<Complex<T>, D, K>
+where
+    T: RealValueType + ValueType + Float,
+    Complex<T>: ValueType + ComplexValueType,
+    D: Dimension + DimNthRoot<typenum::P3>,
+    <D as DimNthRoot<typenum::P3>>::Output: Dimension,
+{
+    pub fn cbrt(self) -> Quantity<Complex<T>, D::Output, ()> {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value.cbrt(),
+        }
+    }
+}
+
 // Finally, as a helping, mul, div by, and dividing the base type should also be implemented
 
 impl<T1, T2, Dim, K> Mul<T2> for Quantity<T1, Dim, K>
@@ -648,6 +739,21 @@ where
             _dim: Default::default(),
             _kind: Default::default(),
             value: self.value / rhs,
+        }
+    }
+}
+
+impl<T, D, K> From<Quantity<T, D, K>> for Quantity<Complex<T>, D, K>
+where
+    T: RealValueType + ValueType + Float,
+    Complex<T>: ValueType + ComplexValueType,
+    D: Dimension,
+{
+    fn from(value: Quantity<T, D, K>) -> Self {
+        Self {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: Complex::<T>::new(value.value, T::new_from_real_f64(0.0)),
         }
     }
 }
