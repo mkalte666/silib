@@ -84,7 +84,8 @@ where
     Dim: Dimension,
 {
     /// Create a new Quantity in its base representation
-    /// Take care that Kind may influence what that actually means
+    ///
+    /// Take care - `Kind` may influence what that actually means
     pub const fn new_base(value: DataType) -> Self {
         Self {
             _dim: PhantomData,
@@ -135,20 +136,22 @@ where
     where
         UnitType: Unit + QuantityConversion<DataType, Dim, K>,
     {
-        UnitFormatter::new(self.value)
+        UnitFormatter::new(self.get::<UnitType>())
     }
 }
 
 /// Addition on quantities is only defined if they are equal in all aspects - or addition is allowed for kinds
-impl<DataType, Dim, K1, K2> Add<Quantity<DataType, Dim, K2>> for Quantity<DataType, Dim, K1>
+impl<T1, T2, Dim, K1, K2> Add<Quantity<T2, Dim, K2>> for Quantity<T1, Dim, K1>
 where
-    DataType: ValueType,
+    T1: ValueType + Add<T2>,
+    T2: ValueType,
     Dim: Dimension,
     K1: KindAdd<K2>,
+    <T1 as Add<T2>>::Output: ValueType,
 {
-    type Output = Quantity<DataType, Dim, <K1 as KindAdd<K2>>::Output>;
+    type Output = Quantity<<T1 as Add<T2>>::Output, Dim, <K1 as KindAdd<K2>>::Output>;
 
-    fn add(self, rhs: Quantity<DataType, Dim, K2>) -> Self::Output {
+    fn add(self, rhs: Quantity<T2, Dim, K2>) -> Self::Output {
         Quantity {
             _dim: Default::default(),
             _kind: Default::default(),
@@ -158,15 +161,17 @@ where
 }
 
 /// Subtraction on quantities is only defined if they are equal in all aspects - or addition is allowed for kinds
-impl<DataType, Dim, K1, K2> Sub<Quantity<DataType, Dim, K2>> for Quantity<DataType, Dim, K1>
+impl<T1, T2, Dim, K1, K2> Sub<Quantity<T2, Dim, K2>> for Quantity<T1, Dim, K1>
 where
-    DataType: ValueType,
+    T1: ValueType + Sub<T2>,
+    T2: ValueType,
     Dim: Dimension,
     K1: KindSub<K2>,
+    <T1 as Sub<T2>>::Output: ValueType,
 {
-    type Output = Quantity<DataType, Dim, <K1 as KindSub<K2>>::Output>;
+    type Output = Quantity<<T1 as Sub<T2>>::Output, Dim, <K1 as KindSub<K2>>::Output>;
 
-    fn sub(self, rhs: Quantity<DataType, Dim, K2>) -> Self::Output {
+    fn sub(self, rhs: Quantity<T2, Dim, K2>) -> Self::Output {
         Quantity {
             _dim: Default::default(),
             _kind: Default::default(),
@@ -176,19 +181,24 @@ where
 }
 
 /// Multiplication of quantities is defined if Dim and Kind can be multiplied
-impl<DataType, DimLhs, KLhs, DimRhs, KRhs> Mul<Quantity<DataType, DimRhs, KRhs>>
-    for Quantity<DataType, DimLhs, KLhs>
+impl<T1, T2, DimLhs, KLhs, DimRhs, KRhs> Mul<Quantity<T2, DimRhs, KRhs>>
+    for Quantity<T1, DimLhs, KLhs>
 where
-    DataType: ValueType,
+    T1: ValueType + Mul<T2>,
+    T2: ValueType,
     DimLhs: Dimension + Mul<DimRhs>,
     DimRhs: Dimension,
     KLhs: KindMul<KRhs>,
     <DimLhs as Mul<DimRhs>>::Output: Dimension,
+    <T1 as Mul<T2>>::Output: ValueType,
 {
-    type Output =
-        Quantity<DataType, <DimLhs as Mul<DimRhs>>::Output, <KLhs as KindMul<KRhs>>::Output>;
+    type Output = Quantity<
+        <T1 as Mul<T2>>::Output,
+        <DimLhs as Mul<DimRhs>>::Output,
+        <KLhs as KindMul<KRhs>>::Output,
+    >;
 
-    fn mul(self, rhs: Quantity<DataType, DimRhs, KRhs>) -> Self::Output {
+    fn mul(self, rhs: Quantity<T2, DimRhs, KRhs>) -> Self::Output {
         Self::Output {
             _dim: PhantomData,
             _kind: PhantomData,
@@ -198,19 +208,24 @@ where
 }
 
 /// Division of quantities is defined if Dim and Kind can be divided
-impl<DataType, DimLhs, KLhs, DimRhs, KRhs> Div<Quantity<DataType, DimRhs, KRhs>>
-    for Quantity<DataType, DimLhs, KLhs>
+impl<T1, T2, DimLhs, KLhs, DimRhs, KRhs> Div<Quantity<T2, DimRhs, KRhs>>
+    for Quantity<T1, DimLhs, KLhs>
 where
-    DataType: ValueType,
+    T1: ValueType + Div<T2>,
+    T2: ValueType,
     DimLhs: Dimension + Div<DimRhs>,
     DimRhs: Dimension,
     KLhs: KindDiv<KRhs>,
     <DimLhs as Div<DimRhs>>::Output: Dimension,
+    <T1 as Div<T2>>::Output: ValueType,
 {
-    type Output =
-        Quantity<DataType, <DimLhs as Div<DimRhs>>::Output, <KLhs as KindDiv<KRhs>>::Output>;
+    type Output = Quantity<
+        <T1 as Div<T2>>::Output,
+        <DimLhs as Div<DimRhs>>::Output,
+        <KLhs as KindDiv<KRhs>>::Output,
+    >;
 
-    fn div(self, rhs: Quantity<DataType, DimRhs, KRhs>) -> Self::Output {
+    fn div(self, rhs: Quantity<T2, DimRhs, KRhs>) -> Self::Output {
         Self::Output {
             _dim: PhantomData,
             _kind: PhantomData,
@@ -285,6 +300,8 @@ where
         nan,
         neg_infinity,
         neg_zero,
+        one,
+        zero,
     );
     no_param_methods!(
         abs -> Quantity<T,D,K>;
@@ -486,6 +503,34 @@ where
         im -> Quantity<<Complex<T> as ComplexFloat>::Real,Dim,K>;
         re -> Quantity<<Complex<T> as ComplexFloat>::Real,Dim,K>;
     );
+
+    pub fn one() -> Self {
+        Self {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: Complex::ONE,
+        }
+    }
+
+    pub fn zero() -> Self {
+        Self {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: Complex::ZERO,
+        }
+    }
+
+    pub fn i() -> Self {
+        Self {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: Complex::i(),
+        }
+    }
+
+    pub fn j() -> Self {
+        Self::i()
+    }
 }
 
 impl<T, Dim, K> Quantity<Complex<T>, Dim, K>

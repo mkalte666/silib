@@ -34,6 +34,9 @@ impl ValueType for f64 {
         value
     }
 }
+
+impl RealValueType for f64 {}
+
 impl ValueType for Complex32 {
     fn new_from_real_f64(value: f64) -> Self {
         c32(value as f32, 0.0)

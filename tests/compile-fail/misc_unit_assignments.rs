@@ -1,7 +1,8 @@
 use silib::si::*;
 
 fn main() {
-    let a = Angle::new_base(2.0)/Time::new_base(3.0);
-    let b = Frequency::new_base(3.0);
+    let a = Angle64::new_base(2.0)/Time64::new_base(3.0);
+    let b = Frequency64::new_base(3.0);
+    let _a2 = a+a;
     let _c = a + b;
 }

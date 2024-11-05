@@ -6,6 +6,9 @@ pub mod si;
 pub mod unit;
 pub mod value_type;
 
+pub use num;
+pub use paste::paste;
+
 mod static_checks {
     use num::complex::{
         Complex32,

@@ -36,7 +36,12 @@ macro_rules! make_quantity {
         use_kind: $kind:ty $(,)*
     ) => {
         pub type $name<T> = $crate::quantity::Quantity<T,$dim,$kind>;
-
+        $crate::paste!(
+            pub type [<$name 32>] = $name<f32>;
+            pub type [<$name 64>] = $name<f64>;
+            pub type [<$name C32>] = $name<$crate::num::Complex<f32>>;
+            pub type [<$name C64>] = $name<$crate::num::Complex<f64>>;
+        );
         impl<T> $crate::unit::QuantityConversion<T,$dim,$kind> for $base
         where T: $crate::value_type::ValueType
         {
@@ -137,7 +142,12 @@ macro_rules! derive_quantity {
         ]$(,)*)*
     ) => {
         pub type $name<T> = $crate::type_math!($($ty)*);
-
+        $crate::paste!(
+            pub type [<$name 32>] = $name<f32>;
+            pub type [<$name 64>] = $name<f64>;
+            pub type [<$name C32>] = $name<$crate::num::Complex<f32>>;
+            pub type [<$name C64>] = $name<$crate::num::Complex<f64>>;
+        );
         impl<T> $crate::unit::QuantityConversion<T,<$name<T> as $crate::quantity::QuantityTypeInfo>::Dimension,<$name<T> as $crate::quantity::QuantityTypeInfo>::Kind> for $unit
         where T: $crate::value_type::ValueType
         {

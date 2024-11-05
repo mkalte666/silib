@@ -20,10 +20,10 @@ derive_quantities!(
 );
 
 fn main() {
-    let weird_new_quantity = Length2Time2PerMass::new_base(420.0);
+    let weird_new_quantity = Length2Time2PerMass64::new_base(420.0);
     assert_eq!(weird_new_quantity.get::<FuzzyWaffles>(), 10.0);
     assert_eq!(
-        "42 fw",
+        "10 fw",
         format!("{}", weird_new_quantity.formatted::<FuzzyWaffles>())
     );
     assert_eq!(
