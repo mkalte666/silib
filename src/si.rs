@@ -22,13 +22,13 @@ use crate::{
 };
 
 make_units!(
-    Second: "s","SI base unit of time";
-    Metre: "m","SI base unit of length";
+    Second: "s","SI base unit of time",prefix_units=[AllPrefixes];
+    Metre: "m","SI base unit of length",prefix_units=[AllPrefixes];
     Kilogram: "kg","SI base unit of mass";
-    Ampere: "A", "SI base unit of electric current";
-    Kelvin: "K", "SI base unit of temperature";
-    Mole: "mol", "SI base unit of Amount of substance";
-    Candela: "cd", "SI base unit of luminous intensity";
+    Ampere: "A", "SI base unit of electric current",prefix_units=[AllPrefixes];
+    Kelvin: "K", "SI base unit of temperature",prefix_units=[AllPrefixes];
+    Mole: "mol", "SI base unit of Amount of substance",prefix_units=[AllPrefixes];
+    Candela: "cd", "SI base unit of luminous intensity",prefix_units=[AllPrefixes];
 );
 
 make_base_quantities!(
@@ -67,7 +67,8 @@ pub type UnitlessC32 = Unitless<Complex<f32>>;
 pub type UnitlessC64 = Unitless<Complex<f64>>;
 
 make_units!(
-    Hertz: "Hz", "Unit of frequency";
+    Gram: "g", "Unit of mass", prefix_units=[KgSpecialCase];
+    Hertz: "Hz", "Unit of frequency",prefix_units=[AllPrefixes];
     Radian: "rad", "Unit of angle";
     RadianPerSecond: "rad*s⁻¹", "Unit of angular velocity and a unit of angular frequency";
     RevolutionsPerSecond: "rps", "A unit of angular velocity";
@@ -75,40 +76,40 @@ make_units!(
     RadianPerSecondSquared: "rad*s⁻²", "Unit of angular acceleration";
     SquareMetre: "m²", "Unit of area";
     CubicMetre: "m³", "Unit of volume";
-    MetresPerSecond: "m*s⁻¹", "Unit of velocity";
+    MetresPerSecond: "m*s⁻¹", "Unit of velocity",prefix_units=[AllPrefixes];
     KilometresPerSecond: "km*s⁻¹", "A unit of velocity";
     KilometresPerHour: "km*h⁻¹", "A unit of velocity";
     MilesPerSecond: "miles*s⁻¹", "A unit of velocity";
     MilesPerHour: "miles*h⁻¹","A unit of velocity";
     MetresPerSecondSquared: "m*s⁻²","Unit of acceleration";
     MetresPerSecondCubed: "m*s⁻³","Unit of jerk";
-    Newton: "N", "Unit of force";
+    Newton: "N", "Unit of force",prefix_units=[AllPrefixes];
     NewtonSecond: "N*s", "Unit of momentum/impulse";
     NewtonMetreSecond: "N*m*s", "Unit of angular momentum";
-    NewtonMetre: "N*m", "Unit of torque";
-    Pascal: "Pa", "Unit of pressure and stress";
-    Joule: "J", "Unit of energy";
-    Watt: "W", "Unit of power";
-    Coulomb: "C", "Unit of charge";
-    Volt: "V", "Unit of electric potential";
-    Farad: "F", "Unit of electrical capacitance";
-    Ohm: "Ω", "Unit of electrical resistance";
-    Siemens: "S", "Unit of electrical conductance";
-    Weber: "Wb", "Unit of magnetic flux";
-    Tesla: "T", "Unit of magnetic induction";
-    Henry: "H", "Unit of electrical inductance";
+    NewtonMetre: "N*m", "Unit of torque",prefix_units=[AllPrefixes];
+    Pascal: "Pa", "Unit of pressure and stress",prefix_units=[AllPrefixes];
+    Joule: "J", "Unit of energy",prefix_units=[AllPrefixes];
+    Watt: "W", "Unit of power",prefix_units=[AllPrefixes];
+    Coulomb: "C", "Unit of charge",prefix_units=[AllPrefixes];
+    Volt: "V", "Unit of electric potential",prefix_units=[AllPrefixes];
+    Farad: "F", "Unit of electrical capacitance",prefix_units=[AllPrefixes];
+    Ohm: "Ω", "Unit of electrical resistance",prefix_units=[AllPrefixes];
+    Siemens: "S", "Unit of electrical conductance",prefix_units=[AllPrefixes];
+    Weber: "Wb", "Unit of magnetic flux",prefix_units=[AllPrefixes];
+    Tesla: "T", "Unit of magnetic induction",prefix_units=[AllPrefixes];
+    Henry: "H", "Unit of electrical inductance",prefix_units=[AllPrefixes];
     Celsius: "°C", "A unit of absolute temperature";
     Fahrenheit: "°F", "A unit of absolute temperature";
     KilogramPerSquareMetre: "kg*m⁻²", "Unit of specific volume";
     KilogramPerCubicMetre: "kg*m⁻³", "Unit of density";
     CubicMetrePerKilogram: "m³*kg⁻¹", "Unit of specific volume";
-    JouleSecond: "J*s", "Unit of action";
-    JoulePerKilogram: "J*kg⁻¹", "Unit of specific energy";
+    JouleSecond: "J*s", "Unit of action",prefix_units=[AllPrefixes];
+    JoulePerKilogram: "J*kg⁻¹", "Unit of specific energy",prefix_units=[AllPrefixes];
     JoulePerCubicMetre: "J*m⁻²", "Unit of energy tensity";
-    NewtonPerMetre: "N*m⁻¹", "Unit of surface tension and Stiffness";
-    WattPerSquareMetre: "W*m⁻²", "Unit of heat flox density";
+    NewtonPerMetre: "N*m⁻¹", "Unit of surface tension and Stiffness",prefix_units=[AllPrefixes];
+    WattPerSquareMetre: "W*m⁻²", "Unit of heat flox density",prefix_units=[AllPrefixes];
     SquareMetrePerSecond: "m²*s⁻¹", "Unit of kinematic viscosity";
-    PascalSecond: "Pa*s", "Unit of dynamic viscosity";
+    PascalSecond: "Pa*s", "Unit of dynamic viscosity",prefix_units=[AllPrefixes];
 );
 
 additional_unit!(ThermodynamicTemperature, Celsius, 1.0, 273.15);

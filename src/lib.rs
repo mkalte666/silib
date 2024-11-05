@@ -6,7 +6,16 @@ pub mod si;
 pub mod unit;
 pub mod value_type;
 
-pub use num;
+pub use num::{
+    self,
+    complex::{
+        c32,
+        c64,
+        Complex,
+        Complex32,
+        Complex64,
+    },
+};
 pub use paste::paste;
 
 mod static_checks {
@@ -32,13 +41,7 @@ mod static_checks {
 
 #[cfg(test)]
 mod tests {
-    use num::complex::c32;
-
-    use crate::si::{
-        Length,
-        LengthC32,
-        Metre,
-    };
+    use crate::si::*;
     #[test]
     fn sqrt_cbrt() {
         let m2 = Length::new_base(4.0) * Length::new_base(4.0);
@@ -49,6 +52,17 @@ mod tests {
 
         assert_eq!(m.get::<Metre>(), 4.0);
         assert_eq!(m_cbrt.get::<Metre>(), 4.0);
+    }
+
+    #[test]
+    fn test_prefixes() {
+        let l1 = Length::new::<Metre>(200.0);
+        let l2 = Length::new::<KiloMetre>(0.2);
+        assert_eq!(l1, l2);
+
+        let mass1 = Mass::new::<Kilogram>(10.0);
+        let mass2 = Mass::new::<Gram>(1e4);
+        assert_eq!(mass1, mass2);
     }
 
     #[cfg(feature = "serde")]
@@ -64,6 +78,7 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn test_serde_basetype() {
+        use super::c32;
         let l = Length::new::<Metre>(123.432);
         let json = serde_json::to_string(&l).expect("To json failed");
         let l2 = 123.432;

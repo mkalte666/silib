@@ -19,6 +19,15 @@ pub trait Unit {
     fn print_name() -> &'static str;
 }
 
+/// This unit is a prefix unit.
+/// Conversion is automatically derived for it.
+pub trait PrefixUnit: Unit {
+    /// The unit this prefixes
+    type Base: Unit;
+    /// return the prefix factor of this unit.
+    fn prefix() -> f64;
+}
+
 /// Implements conversion between quantities and the units used to build them
 pub trait QuantityConversion<DataType, Dim, K>
 where
@@ -46,6 +55,21 @@ where
     }
 }
 
+impl<DataType, Dim, K, U> QuantityConversion<DataType, Dim, K> for U
+where
+    U: PrefixUnit,
+    U::Base: Unit + QuantityConversion<DataType, Dim, K>,
+    DataType: ValueType,
+    Dim: Dimension,
+{
+    fn factor() -> DataType {
+        U::Base::factor() * DataType::new_from_real_f64(U::prefix())
+    }
+
+    fn offset() -> DataType {
+        U::Base::offset()
+    }
+}
 /// A helper struct for formatting, as we cannot return `std::fmt::Arguments`.
 ///
 /// This just combines a value in `DataType` with the `UnitType` and describes how it will be formatted.

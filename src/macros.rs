@@ -17,14 +17,192 @@ macro_rules! unit {
 }
 
 #[macro_export]
+macro_rules! prefix {
+    (Quetta) => {
+        1e30
+    };
+    (Ronna) => {
+        1e27
+    };
+    (Yotta) => {
+        1e24
+    };
+    (Zetta) => {
+        1e21
+    };
+    (Exa) => {
+        1e18
+    };
+    (Peta) => {
+        1e15
+    };
+    (Tera) => {
+        1e12
+    };
+    (Giga) => {
+        1e9
+    };
+    (Mega) => {
+        1e6
+    };
+    (Kilo) => {
+        1e3
+    };
+    (Hecto) => {
+        1e2
+    };
+    (Deca) => {
+        1e1
+    };
+    (Deci) => {
+        1e-1
+    };
+    (Centi) => {
+        1e-2
+    };
+    (Milli) => {
+        1e-3
+    };
+    (Micro) => {
+        1e-6
+    };
+    (Nano) => {
+        1e-9
+    };
+    (Pico) => {
+        1e-12
+    };
+    (Femto) => {
+        1e-15
+    };
+    (Atto) => {
+        1e-18
+    };
+    (Zepto) => {
+        1e-21
+    };
+    (Yocto) => {
+        1e-24
+    };
+    (Ronto) => {
+        1e-27
+    };
+    (Quecto) => {
+        1e-30
+    };
+}
+
+#[macro_export]
+macro_rules! make_unit_prefixes {
+    ([AllPrefixes,],$long_name:ident, $print_name:literal,$description:literal) => {
+        $crate::make_unit_prefixes!([
+            Quetta, "Q",
+            Ronna, "R",
+            Yotta, "Y",
+            Zetta, "Z",
+            Exa, "E",
+            Peta, "P",
+            Tera, "T",
+            Giga, "G",
+            Mega, "M",
+            Kilo,"k",
+            Hecto,"h",
+            Deca,"da",
+            Deci,"d",
+            Centi,"c",
+            Milli,"m",
+            Micro,"μ",
+            Nano,"n",
+            Pico,"p",
+            Femto,"f",
+            Atto,"a",
+            Zepto,"z",
+            Yocto,"y",
+            Ronto,"r",
+            Quecto,"q"
+        ], 1.0, $long_name, $print_name, $description);
+    };
+    ([KgSpecialCase,],$long_name:ident, $print_name:literal,$description:literal) => {
+        $crate::make_unit_prefixes!([
+            Quetta, "Q",
+            Ronna, "R",
+            Yotta, "Y",
+            Zetta, "Z",
+            Exa, "E",
+            Peta, "P",
+            Tera, "T",
+            Giga, "G",
+            Mega, "M",
+            Hecto,"h",
+            Deca,"da",
+            Deci,"d",
+            Centi,"c",
+            Milli,"m",
+            Micro,"μ",
+            Nano,"n",
+            Pico,"p",
+            Femto,"f",
+            Atto,"a",
+            Zepto,"z",
+            Yocto,"y",
+            Ronto,"r",
+            Quecto,"q"
+        ], 1e-3, Kilogram, $long_name, $print_name, $description);
+
+        impl $crate::unit::PrefixUnit for $long_name {
+                type Base = Kilogram;
+                fn prefix() -> f64 {
+                    1e-3
+                }
+            }
+    };
+    ([$pfx_name:ident, $pfx:literal,$($rest:tt)*], $additional_factor:literal, $long_name:ident, $print_name:literal, $description:literal) => {
+        $crate::make_unit_prefixes!([$pfx_name,$pfx], $additional_factor, $long_name, $long_name, $print_name, $description);
+        $crate::make_unit_prefixes!([$($rest)*], $additional_factor, $long_name,$long_name, $print_name, $description);
+    };
+    ([$pfx_name:ident, $pfx:literal,$($rest:tt)*], $additional_factor:literal, $base_name:ident, $long_name:ident,  $print_name:literal, $description:literal) => {
+        $crate::make_unit_prefixes!([$pfx_name,$pfx], $additional_factor, $base_name, $long_name, $print_name, $description);
+        $crate::make_unit_prefixes!([$($rest)*], $additional_factor, $base_name,$long_name, $print_name, $description);
+    };
+    ([$pfx_name:ident, $pfx:literal$(,)*], $additional_factor:literal, $base_name:ident, $long_name:ident, $print_name:literal,$description:literal) => {
+        $crate::paste!(
+        #[doc=$description]
+            pub struct [<$pfx_name $long_name>] {}
+
+            impl $crate::unit::Unit for [<$pfx_name $long_name>] {
+                fn long_name() -> &'static str {
+                    stringify!($pfx_name, $long_name)
+                }
+
+                fn print_name() -> &'static str {
+                    concat!($pfx, $print_name)
+                }
+            }
+
+            impl $crate::unit::PrefixUnit for [<$pfx_name $long_name>] {
+                type Base = $base_name;
+                fn prefix() -> f64 {
+                    $crate::prefix!($pfx_name)*$additional_factor
+                }
+            }
+
+        );
+    };
+}
+
+#[macro_export]
 macro_rules! make_units {
         (
-            $($long_name:ident: $print_name:literal,$description:literal;)*
+            $($long_name:ident: $print_name:literal,$description:literal$(,prefix_units=[$($pfx_commands:tt)*])*;)*
         ) => {
             $(
                 $crate::unit!($long_name, $print_name, $description);
+                $(
+                    $crate::make_unit_prefixes!([$($pfx_commands,)*], $long_name,$print_name, $description);
+                )*
             )*
         };
+
     }
 
 #[macro_export]
