@@ -36,6 +36,7 @@ use crate::{
         KindMul,
         KindSub,
     },
+    reverse_ops,
     unit::{
         QuantityConversion,
         Unit,
@@ -757,3 +758,9 @@ where
         }
     }
 }
+
+// we need these as Q*T is defined by all the above, but unfortunatley T*Q is not
+reverse_ops!(f32);
+reverse_ops!(f64);
+reverse_ops!(num::complex::Complex32);
+reverse_ops!(num::complex::Complex64);

@@ -45,10 +45,10 @@ mod tests {
     use crate::si::*;
     #[test]
     fn sqrt_cbrt() {
-        let m2 = Length::new_base(4.0) * Length::new_base(4.0);
+        let m2 = Length64::new_base(4.0) * Length::new_base(4.0);
         let m: Length<_> = m2.sqrt();
         // let nope = m2.cbrt();
-        let m3 = m2 * Length::new_base(4.0);
+        let m3 = m2 * Length64::new_base(4.0);
         let m_cbrt: Length<_> = m3.cbrt();
 
         assert_eq!(m.get::<Metre>(), 4.0);
@@ -64,6 +64,15 @@ mod tests {
         let mass1 = Mass::new::<Kilogram>(10.0);
         let mass2 = Mass::new::<Gram>(1e4);
         assert_eq!(mass1, mass2);
+    }
+
+    #[test]
+    fn reverse_ops() {
+        let t1 = Time64::new::<Second>(100.0);
+        let t2 = 100.0 * t1;
+        let freq = 1.0 / t1;
+        assert_eq!(t2.get::<Second>(), 10000.0);
+        assert_eq!(freq.get::<Hertz>(), 0.01);
     }
 
     #[cfg(feature = "serde")]

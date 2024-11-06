@@ -420,3 +420,41 @@ macro_rules! make_kind {
         )*
     };
 }
+
+/// Helper macro to generate T*Quantity and T/Quantity operations
+///
+/// Unfortunatley, you cannot trivially overload those for any data type.
+/// So if you ever implement your own ValueType, you will have to throw this macro at the data type.
+///
+/// Otherwise you can do Quantity * T, but not T * Quantity.
+#[macro_export]
+macro_rules! reverse_ops {
+    ($tname:ty) => {
+        impl<Dim, K> Mul<$crate::quantity::Quantity<$tname, Dim, K>> for $tname
+        where
+            Dim: $crate::dimension::Dimension,
+        {
+            type Output = $crate::quantity::Quantity<$tname, Dim, K>;
+
+            fn mul(self, rhs: $crate::quantity::Quantity<$tname, Dim, K>) -> Self::Output {
+                $crate::quantity::Quantity::new_base(self * rhs.base_value())
+            }
+        }
+
+        impl<Dim, K> Div<$crate::quantity::Quantity<$tname, Dim, K>> for $tname
+        where
+            Dim: $crate::dimension::Dimension + $crate::dimension::DimInverse,
+            <Dim as $crate::dimension::DimInverse>::Output: $crate::dimension::Dimension,
+        {
+            type Output = $crate::quantity::Quantity<
+                $tname,
+                <Dim as $crate::dimension::DimInverse>::Output,
+                K,
+            >;
+
+            fn div(self, rhs: $crate::quantity::Quantity<$tname, Dim, K>) -> Self::Output {
+                $crate::quantity::Quantity::new_base(self / rhs.base_value())
+            }
+        }
+    };
+}
