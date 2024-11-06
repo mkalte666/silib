@@ -196,6 +196,7 @@ derive_quantities!(
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::quantity::QuantityType;
 
     #[test]
     fn check_kind_conversion() {

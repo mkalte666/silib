@@ -1,6 +1,7 @@
 use silib::{
     derive_quantities,
     make_units,
+    quantity::QuantityType,
     si::{
         Length,
         Mass,

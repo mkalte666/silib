@@ -1,5 +1,8 @@
 use num::complex::c64;
-use silib::si::*;
+use silib::{
+    quantity::QuantityType,
+    si::*,
+};
 
 #[test]
 fn basic_ops() {

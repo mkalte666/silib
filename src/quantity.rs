@@ -52,12 +52,31 @@ use crate::{
 
 /// A helper trait to quickly be able to access the usually templated types of Quantities.
 pub trait QuantityType {
-    type DataType;
-    type Dimension;
+    type DataType: ValueType;
+    type Dimension: Dimension;
     type Kind;
 
     fn from_base(value: Self::DataType) -> Self;
     fn base_value(&self) -> Self::DataType;
+
+    fn get<U: Unit + QuantityConversion<Self::DataType, Self::Dimension, Self::Kind>>(
+        &self,
+    ) -> Self::DataType {
+        U::convert_from_base(self.base_value())
+    }
+
+    fn set<U: Unit + QuantityConversion<Self::DataType, Self::Dimension, Self::Kind>>(
+        &mut self,
+        value: Self::DataType,
+    ) where
+        Self: Sized,
+    {
+        *self = Self::from_base(U::convert_to_base(value));
+    }
+
+    fn formatted<U: Unit + QuantityConversion<Self::DataType, Self::Dimension, Self::Kind>>(
+        &self,
+    ) -> UnitFormatter<Self::DataType, U>;
 }
 
 /// Represent a specific quantity stored
@@ -125,14 +144,6 @@ where
             _kind: PhantomData,
             value: self.value,
         }
-    }
-
-    /// Access this Quantity as unit of type Unit
-    pub fn get<Unit>(&self) -> DataType
-    where
-        Unit: QuantityConversion<DataType, Dim, K>,
-    {
-        Unit::convert_from_base(self.value)
     }
 }
 
@@ -329,6 +340,12 @@ where
     /// Note that you lose the dimensional analysis safety here, but this is very much a valid operation for all kinds of things
     fn base_value(&self) -> Self::DataType {
         self.value
+    }
+
+    fn formatted<U: Unit + QuantityConversion<Self::DataType, Self::Dimension, Self::Kind>>(
+        &self,
+    ) -> UnitFormatter<Self::DataType, U> {
+        UnitFormatter::new(self.get::<U>())
     }
 }
 

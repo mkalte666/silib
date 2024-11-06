@@ -5,6 +5,7 @@ pub mod macros;
 pub mod quantity;
 pub mod si;
 pub mod unit;
+mod util;
 pub mod value_type;
 
 pub use num::{
@@ -46,7 +47,10 @@ mod static_checks {
 
 #[cfg(test)]
 mod tests {
-    use crate::si::*;
+    use crate::{
+        quantity::QuantityType,
+        si::*,
+    };
     #[test]
     fn sqrt_cbrt() {
         let m2 = Length64::new_base(4.0) * Length::new_base(4.0);
