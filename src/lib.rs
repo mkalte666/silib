@@ -5,7 +5,7 @@ pub mod macros;
 pub mod quantity;
 pub mod si;
 pub mod unit;
-mod util;
+pub mod util;
 pub mod value_type;
 
 pub use num::{
