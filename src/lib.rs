@@ -18,6 +18,10 @@ pub use num::{
     },
 };
 pub use paste::paste;
+pub use typenum::{
+    self,
+    consts as type_consts,
+};
 
 mod static_checks {
     use num::complex::{

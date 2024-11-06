@@ -4,11 +4,15 @@ use std::{
     marker::PhantomData,
     ops::{
         Add,
+        AddAssign,
         Div,
+        DivAssign,
         Mul,
+        MulAssign,
         Neg,
         Sub,
     },
+    str::FromStr,
 };
 
 use num::{
@@ -50,10 +54,13 @@ use crate::{
 };
 
 /// A helper trait to quickly be able to access the usually templated types of Quantities.
-pub trait QuantityTypeInfo {
+pub trait QuantityType {
     type DataType;
     type Dimension;
     type Kind;
+
+    fn from_base(value: Self::DataType) -> Self;
+    fn base_value(&self) -> Self::DataType;
 }
 
 /// Represent a specific quantity stored
@@ -129,13 +136,6 @@ where
         Unit: QuantityConversion<DataType, Dim, K>,
     {
         Unit::convert_from_base(self.value)
-    }
-
-    /// Access this quantities base value.
-    ///
-    /// Note that you lose the dimensional analysis safety here, but this is very much a valid operation for all kinds of things
-    pub fn base_value(&self) -> DataType {
-        self.value
     }
 }
 
@@ -314,7 +314,7 @@ where
     }
 }
 
-impl<T, D, K> QuantityTypeInfo for Quantity<T, D, K>
+impl<T, D, K> QuantityType for Quantity<T, D, K>
 where
     T: ValueType,
     D: Dimension,
@@ -322,6 +322,17 @@ where
     type DataType = T;
     type Dimension = D;
     type Kind = K;
+
+    fn from_base(value: Self::DataType) -> Self {
+        Self::new_base(value)
+    }
+
+    /// Access this quantities base value.
+    ///
+    /// Note that you lose the dimensional analysis safety here, but this is very much a valid operation for all kinds of things
+    fn base_value(&self) -> Self::DataType {
+        self.value
+    }
 }
 
 // floating point methods impls
@@ -418,6 +429,10 @@ where
 
     pub fn is_sign_positive(&self) -> bool {
         self.value.is_sign_positive()
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.value.is_zero()
     }
 
     pub fn clamp(self, min: Self, max: Self) -> Self {
@@ -539,6 +554,7 @@ where
         ln_1p -> Quantity<T,NoDim,()>;
         log10 -> Quantity<T,NoDim,()>;
         log2 -> Quantity<T,NoDim,()>;
+        sin -> Quantity<T,NoDim,()>;
     );
     one_param_methods!(
         atan2 -> Quantity<T,NoDim,AngleKind>;
@@ -764,3 +780,15 @@ reverse_ops!(f32);
 reverse_ops!(f64);
 reverse_ops!(num::complex::Complex32);
 reverse_ops!(num::complex::Complex64);
+
+impl<T, D, K> FromStr for Quantity<T, D, K>
+where
+    T: FromStr + ValueType,
+    D: Dimension,
+{
+    type Err = T::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::from_base(T::from_str(s)?))
+    }
+}

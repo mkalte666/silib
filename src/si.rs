@@ -72,6 +72,8 @@ make_units!(
     Hertz: "Hz", "Unit of frequency",prefix_units=[AllPrefixes];
     Radian: "rad", "Unit of angle";
     Degree: "°", "Alternate unit of angle";
+    Minute: "min", "Alternate unit of time";
+    Hour: "hr", "Alternate unit of time";
     RadianPerSecond: "rad*s⁻¹", "Unit of angular velocity and a unit of angular frequency";
     RevolutionsPerSecond: "rps", "A unit of angular velocity";
     RevolutionsPerMinute: "rpm", "A unit of angular velocity";
@@ -124,6 +126,9 @@ make_units!(
 additional_unit!(ThermodynamicTemperature, Celsius, 1.0, 273.15);
 additional_unit!(ThermodynamicTemperature, Fahrenheit, 5.0 / 9.0, 459.67);
 additional_unit!(Unitless, Ratio, 1.0);
+
+additional_unit!(Time, Minute, 60.0);
+additional_unit!(Time, Hour, 60.0 * 60.0);
 
 make_quantity!(
     name: Angle,

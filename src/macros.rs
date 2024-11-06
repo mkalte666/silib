@@ -291,8 +291,8 @@ macro_rules! additional_unit {
         impl<T>
             $crate::unit::QuantityConversion<
                 T,
-                <$name<T> as $crate::quantity::QuantityTypeInfo>::Dimension,
-                <$name<T> as $crate::quantity::QuantityTypeInfo>::Kind,
+                <$name<T> as $crate::quantity::QuantityType>::Dimension,
+                <$name<T> as $crate::quantity::QuantityType>::Kind,
             > for $unit
         where
             T: $crate::value_type::ValueType,
@@ -326,7 +326,7 @@ macro_rules! derive_quantity {
             pub type [<$name C32>] = $name<$crate::num::Complex<f32>>;
             pub type [<$name C64>] = $name<$crate::num::Complex<f64>>;
         );
-        impl<T> $crate::unit::QuantityConversion<T,<$name<T> as $crate::quantity::QuantityTypeInfo>::Dimension,<$name<T> as $crate::quantity::QuantityTypeInfo>::Kind> for $unit
+        impl<T> $crate::unit::QuantityConversion<T,<$name<T> as $crate::quantity::QuantityType>::Dimension,<$name<T> as $crate::quantity::QuantityType>::Kind> for $unit
         where T: $crate::value_type::ValueType
         {
             fn factor() -> T {
