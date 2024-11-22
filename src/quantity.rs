@@ -795,6 +795,26 @@ reverse_ops!(f64);
 reverse_ops!(num::complex::Complex32);
 reverse_ops!(num::complex::Complex64);
 
+// num traits below
+
+impl<T, Dim, K> Inv for Quantity<T, Dim, K>
+where
+    T: ValueType + Inv<Output = T>,
+    Dim: Dimension + DimInverse,
+    <Dim as DimInverse>::Output: Dimension,
+    (): KindDiv<K>,
+{
+    type Output = Quantity<T, <Dim as DimInverse>::Output, <() as KindDiv<K>>::Output>;
+
+    fn inv(self) -> Self::Output {
+        Quantity {
+            _dim: Default::default(),
+            _kind: Default::default(),
+            value: self.value.inv(),
+        }
+    }
+}
+
 impl<T, D, K> FromStr for Quantity<T, D, K>
 where
     T: FromStr + ValueType,
